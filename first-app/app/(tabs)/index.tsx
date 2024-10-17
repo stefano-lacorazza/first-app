@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Image, StyleSheet, Platform, TextInput, Button, View, Text } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Animated, TextInput, Button, View, Text, StyleSheet } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
@@ -10,39 +10,62 @@ import { sendTextToChatGPT } from '@/api/chatgpt';
 export default function HomeScreen() {
   const [text, setText] = useState('');
   const [submittedText, setSubmittedText] = useState('');
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const handleSubmit = () => {
     sendTextToChatGPT(text).then(setSubmittedText);
   };
+
+  useEffect(() => {
+    if (submittedText) {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.delay(5000),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [submittedText]);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
+    <View style={styles.container}>
       <TextInput
         placeholder="Enter text here"
-        style={{ height: 40, borderColor: 'gray', borderWidth: 1 }}
+        style={styles.input}
         onChangeText={setText}
         value={text}
       />
       <Button title="Submit" onPress={handleSubmit} />
       {submittedText ? (
-        <View style={styles.textView}>
+        <Animated.View style={[styles.textView, { opacity: fadeAnim }]}>
           <Text style={styles.text}>{submittedText}</Text>
-        </View>
+        </Animated.View>
       ) : null}
-    </ParallaxScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  reactLogo: {
-    width: 100,
-    height: 100,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 12,
+    width: '100%',
+    paddingHorizontal: 8,
   },
   textView: {
     marginTop: 20,
