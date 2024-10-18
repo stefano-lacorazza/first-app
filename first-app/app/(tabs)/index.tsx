@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Animated, TextInput, Button, View, Text, StyleSheet } from 'react-native';
-
+import { Animated, TextInput, Button, View, Text, StyleSheet, ImageBackground } from 'react-native';
+import { useFonts } from "expo-font";
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -12,9 +12,13 @@ export default function HomeScreen() {
   const [submittedText, setSubmittedText] = useState('');
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = () => {
-    sendTextToChatGPT(text).then(setSubmittedText);
+    sendTextToChatGPT(text).then(response => {
+      setSubmittedText(response);
+      setText(''); 
+    });
   };
 
   useEffect(() => {
@@ -22,13 +26,13 @@ export default function HomeScreen() {
       Animated.sequence([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 500,
+          duration: 1500,
           useNativeDriver: true,
         }),
         Animated.delay(5000),
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 500,
+          duration: 1500,
           useNativeDriver: true,
         }),
       ]).start();
@@ -42,49 +46,71 @@ export default function HomeScreen() {
     }
     const newTimer = setTimeout(() => {
       handleSubmit();
-    }, 2000);
+    }, 4000);
     setTimer(newTimer);
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        placeholder="Enter text here"
-        style={styles.input}
-        onChangeText={handleTextChange}
-        value={text}
-      />
-
-      {submittedText ? (
-        <Animated.View style={[styles.textView, { opacity: fadeAnim }]}>
-          <Text style={styles.text}>{submittedText}</Text>
-        </Animated.View>
-      ) : null}
-    </View>
+    <ImageBackground source={require('@/assets/images/paper-background.jpg')} style={styles.background}>
+      <View style={styles.container}>
+        {submittedText ? (
+          <Animated.View style={[styles.textView, { opacity: fadeAnim }]}>
+            <Text style={styles.text}>{submittedText}</Text>
+          </Animated.View>
+        ) : null}
+        <TextInput
+          placeholder=""
+          style={[styles.input, isFocused && styles.focusedInput && ({ outlineStyle: 'none' } as any) ]}
+          onChangeText={handleTextChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          value={text}
+          underlineColorAndroid="transparent" 
+          caretHidden={true}
+          autoFocus={true}
+        />
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    borderWidth: 0,
   },
   input: {
     height: 40,
     width: '80%',
     borderColor: 'transparent',
     borderWidth: 0,
-    textAlign: 'center',
+    textAlign: 'left',
     backgroundColor: 'transparent',
+    fontFamily: 'Hagrid',
+    fontSize: 30,
+  },
+  focusedInput: {
+    borderColor: 'transparent',
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    fontFamily: 'Hagrid',
+    fontSize: 30,
   },
   textView: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'transparent',
   },
   text: {
-    fontSize: 16,
+    fontSize: 30,
+    fontFamily: 'Aquiline', 
+    backgroundColor: 'transparent',
   },
 });

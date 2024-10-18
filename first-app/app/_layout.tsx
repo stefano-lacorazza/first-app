@@ -14,6 +14,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Aquiline: require('../assets/fonts/Aquiline.ttf'),
+    Hagrid: require('../assets/fonts/Hagrid.ttf'),
   });
 
   useEffect(() => {
