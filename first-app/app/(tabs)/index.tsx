@@ -10,6 +10,7 @@ import { sendTextToChatGPT } from '@/api/chatgpt';
 export default function HomeScreen() {
   const [text, setText] = useState('');
   const [submittedText, setSubmittedText] = useState('');
+  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const handleSubmit = () => {
@@ -34,15 +35,26 @@ export default function HomeScreen() {
     }
   }, [submittedText]);
 
+  const handleTextChange = (input: string) => {
+    setText(input);
+    if (timer) {
+      clearTimeout(timer);
+    }
+    const newTimer = setTimeout(() => {
+      handleSubmit();
+    }, 2000);
+    setTimer(newTimer);
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
         placeholder="Enter text here"
         style={styles.input}
-        onChangeText={setText}
+        onChangeText={handleTextChange}
         value={text}
       />
-      <Button title="Submit" onPress={handleSubmit} />
+
       {submittedText ? (
         <Animated.View style={[styles.textView, { opacity: fadeAnim }]}>
           <Text style={styles.text}>{submittedText}</Text>
@@ -61,11 +73,11 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 12,
-    width: '100%',
-    paddingHorizontal: 8,
+    width: '80%',
+    borderColor: 'transparent',
+    borderWidth: 0,
+    textAlign: 'center',
+    backgroundColor: 'transparent',
   },
   textView: {
     marginTop: 20,
