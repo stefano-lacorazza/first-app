@@ -12,12 +12,20 @@ export default function HomeScreen() {
   const [submittedText, setSubmittedText] = useState('');
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const inputFadeAnim = useRef(new Animated.Value(1)).current;
   const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = () => {
-    sendTextToChatGPT(text).then(response => {
-      setSubmittedText(response);
-      setText(''); 
+    Animated.timing(inputFadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      sendTextToChatGPT(text).then(response => {
+        setSubmittedText(response);
+        setText(''); // Clear the text input
+        inputFadeAnim.setValue(1); // Reset the fade animation
+      });
     });
   };
 
@@ -58,17 +66,19 @@ export default function HomeScreen() {
             <Text style={styles.text}>{submittedText}</Text>
           </Animated.View>
         ) : null}
-        <TextInput
-          placeholder=""
-          style={[styles.input, isFocused && styles.focusedInput && ({ outlineStyle: 'none' } as any) ]}
-          onChangeText={handleTextChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          value={text}
-          underlineColorAndroid="transparent" 
-          caretHidden={true}
-          autoFocus={true}
-        />
+        <Animated.View style={{ opacity: inputFadeAnim, width: '100%' }}>
+          <TextInput
+            placeholder=""
+            style={[styles.input, isFocused && styles.focusedInput && ({ outlineStyle: 'none' } as any) ]}
+            onChangeText={handleTextChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            value={text}
+            underlineColorAndroid="transparent" 
+            caretHidden={true}
+            autoFocus={true}
+          />
+        </Animated.View>
       </View>
     </ImageBackground>
   );
